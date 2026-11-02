@@ -1,211 +1,226 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Policy Management Mini App</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: var(--tg-theme-bg-color, #ffffff);
-            --text-color: var(--tg-theme-text-color, #222222);
-            --hint-color: var(--tg-theme-hint-color, #999999);
-            --button-color: var(--tg-theme-button-color, #2481cc);
-            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
-            --card-bg: var(--tg-theme-secondary-bg-color, #f5f5f5);
-        }
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 12px;
-            margin: 0;
-            font-size: 14px;
-        }
-        .container { max-width: 450px; margin: 0 auto; }
-        .section { background: var(--card-bg); padding: 12px; border-radius: 10px; margin-bottom: 15px; }
-        h3 { margin-top: 0; font-size: 16px; color: var(--button-color); }
-        .form-group { margin-bottom: 10px; }
-        label { display: block; font-size: 12px; color: var(--hint-color); margin-bottom: 3px; }
-        input, select, textarea {
-            width: 100%; padding: 8px; border: 1px solid var(--hint-color);
-            border-radius: 6px; background: transparent; color: var(--text-color);
-            box-sizing: border-box; font-size: 14px;
-        }
-        button {
-            width: 100%; background-color: var(--button-color); color: var(--button-text-color);
-            border: none; padding: 10px; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; margin-top: 5px;
-        }
-        .customer-card {
-            background: var(--bg-color); padding: 10px; border-radius: 6px; margin-bottom: 8px;
-            border-left: 4px solid var(--button-color); font-size: 13px;
-        }
-        #status-msg { text-align: center; font-size: 13px; margin-top: 8px; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Policy Management Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
 </head>
-<body>
-    <div class="container">
-        
-        <!-- SECTION 1: Policy Lookup & Note Update -->
-        <div class="section">
-            <h3>🔍 Policy Lookup & Edit</h3>
-            <div class="form-group">
-                <label>Policy Number</label>
-                <div style="display: flex; gap: 6px;">
-                    <input type="text" id="policyNumber" placeholder="e.g. 80523155">
-                    <button type="button" onclick="searchPolicy()" style="width: 90px; margin-top:0;">Search</button>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="fullName" readonly>
-            </div>
-            <div style="display: flex; gap: 8px;" class="form-group">
-                <div style="flex:1;">
-                    <label>Policy Status</label>
-                    <input type="text" id="policySt" readonly>
-                </div>
-                <div style="flex:1;">
-                    <label>Paid To Date</label>
-                    <input type="text" id="paidToDate" readonly>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Mobile Number (Editable)</label>
-                <input type="text" id="mobileNo" placeholder="Update phone number">
-            </div>
-            <div class="form-group">
-                <label>New Phone Number</label>
-                <input type="text" id="newPhoneNumber" placeholder="Enter new phone number">
-            </div>
-            <div class="form-group">
-                <label>Date Allow for Appointment</label>
-                <input type="date" id="appointmentDate">
-            </div>
-            <div class="form-group">
-                <label>Comment / Notes (Editable)</label>
-                <textarea id="comment" rows="2" placeholder="Add comments or follow-up notes..."></textarea>
-            </div>
-            <button type="button" onclick="savePolicyData()">Save Changes to Sheet</button>
-        </div>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
 
-        <!-- SECTION 2: View Customers by Agent Name -->
-        <div class="section">
-            <h3>👥 View Customer List by Agent</h3>
-            <div class="form-group">
-                <label>Select Agent Name</label>
-                <select id="agentSelect" onchange="loadAgentCustomers()">
-                    <option value="">-- Choose Agent --</option>
-                </select>
-            </div>
-            <div id="agent-customer-list" style="max-height: 250px; overflow-y: auto; margin-top: 10px;">
-                <p style="color: var(--hint-color); text-align: center; font-size: 12px;">Select an agent to view their customers</p>
-            </div>
-        </div>
+  <div class="max-w-4xl mx-auto py-8 px-4 sm:px-6">
+    <!-- Header -->
+    <header class="mb-8">
+      <h1 class="text-2xl font-bold text-slate-900">Policy Portal</h1>
+      <p class="text-sm text-slate-500 mt-1">Search, review customer policies, and log feedback.</p>
+    </header>
 
-        <div id="status-msg"></div>
+    <!-- Search & Filters -->
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Search Policy No</label>
+        <div class="flex gap-2">
+          <input id="policySearchInput" type="text" placeholder="e.g. 80526043" 
+                 class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <button onclick="handleSearch()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition">
+            Search
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Filter by Agent</label>
+        <select id="agentDropdown" onchange="handleAgentSelect()" 
+                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+          <option value="">Select Agent...</option>
+        </select>
+      </div>
     </div>
 
-    <script>
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
+    <!-- Feedback Banner -->
+    <div id="statusAlert" class="hidden mb-6 p-4 rounded-lg text-sm font-medium"></div>
 
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx1UhBG9YdWFQVJS0Upukv0zPjueu-tICqrjNB9a2LQb4qxLCEXmpPJ17W1md9EgLHJvQ/exec"; // Keep your deployed Web App URL here
+    <!-- Details & Update Card -->
+    <div id="policyCard" class="hidden bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="bg-slate-100 border-b border-slate-200 px-6 py-4 flex justify-between items-center">
+        <div>
+          <span class="text-xs uppercase tracking-wider font-semibold text-slate-400">Policy Number</span>
+          <h2 id="cardPolicyNo" class="text-lg font-bold text-slate-800"></h2>
+        </div>
+        <span id="cardProductType" class="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700"></span>
+      </div>
 
-        // Load Agent dropdown on startup
-        window.onload = async function() {
-            try {
-                let res = await fetch(`${WEB_APP_URL}?action=getAgents`);
-                let result = await res.json();
-                let select = document.getElementById('agentSelect');
-                result.agents.forEach(agent => {
-                    let opt = document.createElement('option');
-                    opt.value = agent;
-                    opt.innerText = agent;
-                    select.appendChild(opt);
-                });
-            } catch(e) { console.error("Could not load agents"); }
+      <div class="p-6">
+        <!-- Read-only Info Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6 pb-6 border-b border-slate-100 text-sm">
+          <div>
+            <div class="text-slate-400 text-xs">Customer Name</div>
+            <div id="cardPoName" class="font-medium text-slate-800 mt-0.5"></div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-xs">Product</div>
+            <div id="cardProduct" class="font-medium text-slate-800 mt-0.5"></div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-xs">Kit Type</div>
+            <div id="cardKitType" class="font-medium text-slate-800 mt-0.5"></div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-xs">Agent Name</div>
+            <div id="cardAgent" class="font-medium text-slate-800 mt-0.5"></div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-xs">Servicing Agent</div>
+            <div id="cardServicingAgent" class="font-medium text-slate-800 mt-0.5"></div>
+          </div>
+          <div>
+            <div class="text-slate-400 text-xs">Telegram Linkage</div>
+            <div id="cardTelegram" class="font-medium text-slate-800 mt-0.5"></div>
+          </div>
+        </div>
+
+        <!-- Update Form Fields -->
+        <form id="updateForm" onsubmit="handleUpdate(event)" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Reason (Col K)</label>
+              <input id="inputReason" type="text" placeholder="e.g. Customer requested call" 
+                     class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Date Remark (Col L)</label>
+              <input id="inputDateRemark" type="date" 
+                     class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Remark / Comment (Col J)</label>
+            <textarea id="inputRemark" rows="3" placeholder="Enter follow-up details..." 
+                      class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button id="saveBtn" type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2 rounded-lg text-sm transition">
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Paste your Google Web App URL here
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1UhBG9YdWFQVJS0Upukv0zPjueu-tICqrjNB9a2LQb4qxLCEXmpPJ17W1md9EgLHJvQ/exec";
+
+    window.onload = async () => {
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=getAgents`);
+        const json = await res.json();
+        if (json.status === "success") {
+          const select = document.getElementById("agentDropdown");
+          json.agents.forEach(agent => {
+            const opt = document.createElement("option");
+            opt.value = agent;
+            opt.textContent = agent;
+            select.appendChild(opt);
+          });
         }
+      } catch (err) {
+        console.error("Failed to load agent list", err);
+      }
+    };
 
-        async function searchPolicy() {
-            let policyNo = document.getElementById('policyNumber').value.trim();
-            let msg = document.getElementById('status-msg');
-            if (!policyNo) { alert("Enter a policy number"); return; }
+    async function handleSearch() {
+      const policyNumber = document.getElementById("policySearchInput").value.trim();
+      if (!policyNumber) return;
 
-            msg.innerText = "Searching...";
-            let res = await fetch(`${WEB_APP_URL}?action=searchPolicy&policyNumber=${encodeURIComponent(policyNo)}`);
-            let result = await res.json();
+      showAlert("Searching policy...", "info");
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=searchPolicy&policyNumber=${encodeURIComponent(policyNumber)}`);
+        const json = await res.json();
 
-            if (result.found) {
-                document.getElementById('fullName').value = result.data.fullName;
-                document.getElementById('policySt').value = result.data.policySt;
-                document.getElementById('paidToDate').value = result.data.paidToDate;
-                document.getElementById('mobileNo').value = result.data.mobileNo;
-                document.getElementById('newPhoneNumber').value = result.data.newPhoneNumber || "";
-                document.getElementById('appointmentDate').value = result.data.appointmentDate || "";
-                document.getElementById('comment').value = result.data.comment;
-                msg.innerText = "Policy loaded!";
-                msg.style.color = "green";
-            } else {
-                msg.innerText = "Policy not found.";
-                msg.style.color = "orange";
-            }
+        if (json.status === "success" && json.found) {
+          hideAlert();
+          populateCard(json.data);
+        } else {
+          showAlert("Policy not found. Verify the number and try again.", "error");
+          document.getElementById("policyCard").classList.add("hidden");
         }
+      } catch (err) {
+        showAlert("Error connecting to sheet service.", "error");
+      }
+    }
 
-        async function savePolicyData() {
-            let policyNumber = document.getElementById('policyNumber').value.trim();
-            let mobileNo = document.getElementById('mobileNo').value.trim();
-            let newPhoneNumber = document.getElementById('newPhoneNumber').value.trim();
-            let appointmentDate = document.getElementById('appointmentDate').value;
-            let comment = document.getElementById('comment').value.trim();
-            let msg = document.getElementById('status-msg');
+    function populateCard(p) {
+      document.getElementById("cardPolicyNo").textContent = p.policyNumber;
+      document.getElementById("cardProductType").textContent = p.productType || "N/A";
+      document.getElementById("cardPoName").textContent = p.poName || "-";
+      document.getElementById("cardProduct").textContent = p.product || "-";
+      document.getElementById("cardKitType").textContent = p.kitType || "-";
+      document.getElementById("cardAgent").textContent = p.agentName || "-";
+      document.getElementById("cardServicingAgent").textContent = p.servicingAgent || "-";
+      document.getElementById("cardTelegram").textContent = p.telegramLinkage || "-";
 
-            if (!policyNumber) { alert("No active policy selected"); return; }
+      document.getElementById("inputRemark").value = p.remark || "";
+      document.getElementById("inputReason").value = p.reason || "";
+      document.getElementById("inputDateRemark").value = p.dateRemark || "";
 
-            msg.innerText = "Saving...";
-            let res = await fetch(WEB_APP_URL, {
-                method: "POST",
-                body: JSON.stringify({ policyNumber, mobileNo, newPhoneNumber, appointmentDate, comment })
-            });
-            let result = await res.json();
-            if (result.status === "success") {
-                msg.innerText = "Saved successfully!";
-                msg.style.color = "green";
-                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
-            } else {
-                msg.innerText = "Error saving data.";
-                msg.style.color = "red";
-            }
+      document.getElementById("policyCard").classList.remove("hidden");
+    }
+
+    async function handleUpdate(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById("saveBtn");
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      const payload = {
+        policyNumber: document.getElementById("cardPolicyNo").textContent,
+        remark: document.getElementById("inputRemark").value,
+        reason: document.getElementById("inputReason").value,
+        dateRemark: document.getElementById("inputDateRemark").value
+      };
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+
+        if (json.status === "success") {
+          showAlert("Policy details updated successfully!", "success");
+        } else {
+          showAlert(`Failed to update: ${json.message}`, "error");
         }
+      } catch (err) {
+        showAlert("Failed to save changes. Check connection.", "error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Changes";
+      }
+    }
 
-        async function loadAgentCustomers() {
-            let agentName = document.getElementById('agentSelect').value;
-            let listContainer = document.getElementById('agent-customer-list');
-            if (!agentName) { listContainer.innerHTML = ""; return; }
+    function showAlert(msg, type) {
+      const alert = document.getElementById("statusAlert");
+      alert.className = "mb-6 p-4 rounded-lg text-sm font-medium ";
+      if (type === "success") alert.className += "bg-emerald-50 text-emerald-800 border border-emerald-200";
+      else if (type === "error") alert.className += "bg-red-50 text-red-800 border border-red-200";
+      else alert.className += "bg-blue-50 text-blue-800 border border-blue-200";
 
-            listContainer.innerHTML = "<p style='text-align:center;'>Loading list...</p>";
-            let res = await fetch(`${WEB_APP_URL}?action=getByAgent&agentName=${encodeURIComponent(agentName)}`);
-            let result = await res.json();
+      alert.textContent = msg;
+      alert.classList.remove("hidden");
+    }
 
-            if (result.customers.length === 0) {
-                listContainer.innerHTML = "<p style='text-align:center;'>No customers found for this agent.</p>";
-                return;
-            }
-
-            let html = "";
-            result.customers.forEach(c => {
-                html += `
-                    <div class="customer-card">
-                        <b>${c.fullName}</b> (Policy: ${c.policyNumber})<br>
-                        📞 Phone: ${c.mobileNo} | 📱 New Phone: ${c.newPhoneNumber || 'N/A'}<br>
-                        📅 Appointment: ${c.appointmentDate || 'N/A'} | Status: ${c.policySt}<br>
-                        📅 Paid To: ${c.paidToDate}<br>
-                        💬 Note: <i>${c.comment || 'None'}</i>
-                    </div>
-                `;
-            });
-            listContainer.innerHTML = html;
-        }
-    </script>
+    function hideAlert() {
+      document.getElementById("statusAlert").classList.add("hidden");
+    }
+  </script>
 </body>
 </html>
