@@ -2,22 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Policy Management Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', sans-serif; }
+    /* Fix native mobile date picker styling and prevent boundary overflow */
+    input[type="date"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      box-sizing: border-box;
+      min-height: 42px;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen">
 
-  <div class="max-w-6xl mx-auto py-8 px-4 sm:px-6">
+  <div class="max-w-6xl mx-auto py-6 px-4 sm:px-6">
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-200 mb-6">
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-5 border-b border-slate-200 mb-6">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900">Policy Operations Portal</h1>
-        <p class="text-sm text-slate-500 mt-1">Manage policies, filter by review status, and update remarks.</p>
+        <h1 class="text-xl sm:text-2xl font-bold text-slate-900">Policy Operations Portal</h1>
+        <p class="text-xs sm:text-sm text-slate-500 mt-1">Manage policies, filter by review status, and update remarks.</p>
       </div>
       <div id="statusBadge" class="hidden mt-3 sm:mt-0 text-xs font-semibold px-3 py-1.5 rounded-full"></div>
     </header>
@@ -35,7 +43,7 @@
         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Direct Search</label>
         <div class="flex gap-2">
           <input id="directSearchInput" type="text" placeholder="Policy No..." class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
-          <button onclick="directSearch()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg transition">Find</button>
+          <button onclick="directSearch()" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-lg transition shrink-0">Find</button>
         </div>
       </div>
     </div>
@@ -44,47 +52,45 @@
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
       <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
       
-      <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm">
-        <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold">
+      <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto">
+        <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
           All (<span id="countAll">0</span>)
         </button>
-        <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900">
+        <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
           Needs Review (<span id="countPending">0</span>)
         </button>
-        <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900">
+        <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
           Already Remarked (<span id="countRemarked">0</span>)
         </button>
       </div>
     </div>
 
     <!-- Card Grid -->
-    <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- Populated via JavaScript -->
-    </div>
+    <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
   </div>
 
   <!-- Modal Form -->
-  <div id="editModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
+  <div id="editModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden p-3 sm:p-4">
+    <div class="bg-white w-full max-w-xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
       
       <!-- Modal Header -->
-      <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+      <div class="px-5 py-3.5 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
         <div>
-          <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Policy Details & Update</span>
-          <h3 id="modalPolicyNo" class="text-lg font-bold text-slate-900">--</h3>
+          <span class="text-[11px] uppercase font-semibold text-slate-400 tracking-wider">Policy Details & Update</span>
+          <h3 id="modalPolicyNo" class="text-base sm:text-lg font-bold text-slate-900">--</h3>
         </div>
-        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+        <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold p-1 leading-none">&times;</button>
       </div>
 
-      <div class="p-6 overflow-y-auto space-y-5">
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4">
         
         <!-- Overwrite Warning Banner -->
-        <div id="overwriteWarning" class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs leading-relaxed">
-          <strong>⚠️ Existing Record Found:</strong> This policy already has remarks logged. Saving will update and overwrite the current remark entry.
+        <div id="overwriteWarning" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs leading-relaxed">
+          <strong>⚠️ Existing Record Found:</strong> This policy already has remarks logged. Saving will overwrite the previous entry.
         </div>
 
         <!-- PRIORITY ACTIONS -->
-        <div class="p-4 bg-blue-50/70 rounded-xl border border-blue-100 space-y-4">
+        <div class="p-4 bg-blue-50/70 rounded-xl border border-blue-100 space-y-3.5">
           <div class="text-xs font-bold text-blue-900 uppercase tracking-wide flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-blue-600"></span>
             Priority Action Fields
@@ -93,15 +99,15 @@
           <!-- Remark Dropdown -->
           <div>
             <label class="block text-xs font-semibold text-slate-700 mb-1">Remark <span class="text-red-500">*</span></label>
-            <select id="modalRemark" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <select id="modalRemark" onchange="handleRemarkChange(this.value)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="">-- Select Remark --</option>
               <option value="Pending Delivery">Pending Delivery</option>
               <option value="Delivered to Customer">Delivered to Customer</option>
             </select>
           </div>
 
-          <!-- Reason Dropdown -->
-          <div>
+          <!-- Reason Dropdown Container (Hides when Delivered to Customer) -->
+          <div id="reasonContainer">
             <label class="block text-xs font-semibold text-slate-700 mb-1">Reason <span class="text-red-500">*</span></label>
             <select id="modalReason" onchange="toggleCustomReason(this.value)" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="">-- Select Reason --</option>
@@ -116,60 +122,60 @@
             <input id="customReasonInput" type="text" placeholder="Type new custom reason..." class="hidden mt-2 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
           </div>
 
-          <!-- Date Remark -->
-          <div>
-            <label class="block text-xs font-semibold text-slate-700 mb-1">Date Remark <span class="text-red-500">*</span></label>
-            <input id="modalDateRemark" type="date" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <!-- Dynamic Date Field (No Overflow) -->
+          <div class="w-full">
+            <label id="dateLabel" class="block text-xs font-semibold text-slate-700 mb-1">Date Remark <span class="text-red-500">*</span></label>
+            <input id="modalDateRemark" type="date" class="w-full max-w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
           </div>
         </div>
 
-        <!-- COMPLETE INFORMATION: Policy & Customer Data -->
+        <!-- COMPLETE INFORMATION: Clean titles without "(Col X)" -->
         <div>
           <span class="text-xs uppercase font-bold text-slate-500 tracking-wider block mb-2">Complete Policy Information</span>
-          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+          <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 text-xs">
             <div>
-              <span class="text-slate-400 block font-medium">Policy Number (Col D)</span>
-              <span id="detailPolicyNo" class="font-bold text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Policy Number</span>
+              <span id="detailPolicyNo" class="font-bold text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">PO Name (Col E)</span>
-              <span id="detailPoName" class="font-semibold text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">PO Name</span>
+              <span id="detailPoName" class="font-semibold text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">Kit Type (Col B)</span>
-              <span id="detailKitType" class="text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Kit Type</span>
+              <span id="detailKitType" class="text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">Transfer Case (Col C)</span>
-              <span id="detailTransfer" class="text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Transfer Case</span>
+              <span id="detailTransfer" class="text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">Product (Col F)</span>
-              <span id="detailProduct" class="text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Product</span>
+              <span id="detailProduct" class="text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">Product Type (Col G)</span>
-              <span id="detailProductType" class="text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Product Type</span>
+              <span id="detailProductType" class="text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">Agent Name (Col A)</span>
-              <span id="detailAgentName" class="text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Agent Name</span>
+              <span id="detailAgentName" class="text-slate-800 break-words">--</span>
             </div>
             <div>
-              <span class="text-slate-400 block font-medium">Servicing Agent (Col I)</span>
-              <span id="detailServicingAgent" class="text-slate-800">--</span>
+              <span class="text-slate-400 block font-medium">Servicing Agent</span>
+              <span id="detailServicingAgent" class="text-slate-800 break-words">--</span>
             </div>
-            <div>
-              <span class="text-slate-400 block font-medium">Telegram Linkage (Col H)</span>
-              <span id="detailTelegram" class="text-slate-800">--</span>
+            <div class="col-span-2">
+              <span class="text-slate-400 block font-medium">Telegram Linkage</span>
+              <span id="detailTelegram" class="text-slate-800 break-words">--</span>
             </div>
           </div>
         </div>
 
       </div>
 
-      <!-- Modal Actions -->
-      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+      <!-- Modal Footer -->
+      <div class="px-5 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end gap-2 shrink-0">
         <button onclick="closeModal()" type="button" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-100 transition">Cancel</button>
         <button onclick="submitUpdate()" id="saveBtn" type="button" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">Save Update</button>
       </div>
@@ -178,11 +184,10 @@
   </div>
 
   <script>
-    // Paste your deployed Google Apps Script Web App URL here
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1UhBG9YdWFQVJS0Upukv0zPjueu-tICqrjNB9a2LQb4qxLCEXmpPJ17W1md9EgLHJvQ/exec";
     let activePolicies = [];
     let currentSelectedPolicy = null;
-    let currentFilter = "all"; // 'all', 'pending', or 'remarked'
+    let currentFilter = "all";
 
     window.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("modalDateRemark").value = new Date().toISOString().split("T")[0];
@@ -245,9 +250,9 @@
 
       Object.keys(buttons).forEach(key => {
         if (key === filterType) {
-          buttons[key].className = "px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold";
+          buttons[key].className = "px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap";
         } else {
-          buttons[key].className = "px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900";
+          buttons[key].className = "px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap";
         }
       });
 
@@ -290,6 +295,8 @@
           hasRemark ? "border-emerald-500 ring-1 ring-emerald-500/20 bg-emerald-50/15" : "border-slate-200 hover:border-slate-300"
         }`;
 
+        const isDelivered = p.remark === "Delivered to Customer";
+
         card.innerHTML = `
           <div class="flex justify-between items-start mb-2">
             <div>
@@ -310,8 +317,8 @@
           ${
             hasRemark 
               ? `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded text-[11px] text-emerald-800 leading-snug">
-                  <span class="font-bold">${p.remark}:</span> ${p.reason || "No reason logged"}
-                  ${p.dateRemark ? `<div class="text-[10px] text-emerald-600 mt-0.5 font-medium">Date: ${p.dateRemark}</div>` : ""}
+                  <span class="font-bold">${p.remark}</span>${(!isDelivered && p.reason) ? `: ${p.reason}` : ""}
+                  ${p.dateRemark ? `<div class="text-[10px] text-emerald-600 mt-0.5 font-medium">${isDelivered ? "Delivered Date" : "Date Remark"}: ${p.dateRemark}</div>` : ""}
                  </div>`
               : `<div class="text-[11px] text-slate-400 italic">Click card to record remark</div>`
           }
@@ -322,10 +329,24 @@
       });
     }
 
+    // Toggle reason field visibility and update the date label based on Remark selection
+    function handleRemarkChange(remarkVal) {
+      const reasonContainer = document.getElementById("reasonContainer");
+      const dateLabel = document.getElementById("dateLabel");
+
+      if (remarkVal === "Delivered to Customer") {
+        reasonContainer.classList.add("hidden");
+        dateLabel.innerHTML = `Delivered Date <span class="text-red-500">*</span>`;
+      } else {
+        reasonContainer.classList.remove("hidden");
+        dateLabel.innerHTML = `Date Remark <span class="text-red-500">*</span>`;
+      }
+    }
+
     function openEditModal(p) {
       currentSelectedPolicy = p;
 
-      // Populate Read-Only Complete Info
+      // Populate Clean Details without "(Col X)"
       document.getElementById("modalPolicyNo").textContent = p.policyNumber;
       document.getElementById("detailPolicyNo").textContent = p.policyNumber || "-";
       document.getElementById("detailPoName").textContent = p.poName || "-";
@@ -346,10 +367,12 @@
         warningBanner.classList.add("hidden");
       }
 
-      // Populate Priority Inputs
+      // Populate Remark
       const remarkSelect = document.getElementById("modalRemark");
       remarkSelect.value = p.remark || "";
+      handleRemarkChange(remarkSelect.value);
 
+      // Populate Reason
       const reasonSelect = document.getElementById("modalReason");
       const customInput = document.getElementById("customReasonInput");
       const standardReasons = [
@@ -371,6 +394,7 @@
         customInput.classList.add("hidden");
       }
 
+      // Populate Date
       document.getElementById("modalDateRemark").value = p.dateRemark || new Date().toISOString().split("T")[0];
 
       document.getElementById("editModal").classList.remove("hidden");
@@ -396,14 +420,29 @@
       if (!currentSelectedPolicy) return;
 
       const remark = document.getElementById("modalRemark").value;
-      let reason = document.getElementById("modalReason").value;
-      if (reason === "__CUSTOM__") {
-        reason = document.getElementById("customReasonInput").value.trim();
-      }
       const dateRemark = document.getElementById("modalDateRemark").value;
+      let reason = "";
 
-      if (!remark || !reason || !dateRemark) {
-        alert("Please complete Remark, Reason, and Date Remark before saving.");
+      if (!remark) {
+        alert("Please select a Remark.");
+        return;
+      }
+
+      if (remark === "Delivered to Customer") {
+        reason = ""; // Reason is not required for Delivered
+      } else {
+        reason = document.getElementById("modalReason").value;
+        if (reason === "__CUSTOM__") {
+          reason = document.getElementById("customReasonInput").value.trim();
+        }
+        if (!reason) {
+          alert("Please select or enter a Reason.");
+          return;
+        }
+      }
+
+      if (!dateRemark) {
+        alert("Please select a date.");
         return;
       }
 
