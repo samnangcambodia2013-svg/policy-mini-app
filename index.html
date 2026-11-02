@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Policy Management Mini-App</title>
+  <title>Policy Management Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -17,13 +17,13 @@
     <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b border-slate-200 mb-6">
       <div>
         <h1 class="text-2xl font-bold text-slate-900">Policy Operations Portal</h1>
-        <p class="text-sm text-slate-500 mt-1">Select an agent or search directly by policy number.</p>
+        <p class="text-sm text-slate-500 mt-1">Manage policies, filter by review status, and update remarks.</p>
       </div>
       <div id="statusBadge" class="hidden mt-3 sm:mt-0 text-xs font-semibold px-3 py-1.5 rounded-full"></div>
     </header>
 
-    <!-- Filters & Search Bar -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <!-- Search & Filters -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="md:col-span-2 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Select Agent</label>
         <select id="agentSelect" onchange="loadAgentPolicies()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
@@ -40,28 +40,37 @@
       </div>
     </div>
 
-    <!-- Cards Grid -->
-    <div class="mb-4 flex items-center justify-between">
+    <!-- Filter Buttons Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
       <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
-      <div class="flex gap-4 text-xs font-medium text-slate-500">
-        <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Already Remarked</span>
-        <span class="inline-flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-300"></span> Needs Review</span>
+      
+      <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm">
+        <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold">
+          All (<span id="countAll">0</span>)
+        </button>
+        <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900">
+          Needs Review (<span id="countPending">0</span>)
+        </button>
+        <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900">
+          Already Remarked (<span id="countRemarked">0</span>)
+        </button>
       </div>
     </div>
 
+    <!-- Card Grid -->
     <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-      <!-- Populated dynamically via JS -->
+      <!-- Populated via JavaScript -->
     </div>
   </div>
 
-  <!-- Edit Modal / Drawer -->
+  <!-- Modal Form -->
   <div id="editModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[92vh]">
       
       <!-- Modal Header -->
       <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
         <div>
-          <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Update Policy</span>
+          <span class="text-xs uppercase font-semibold text-slate-400 tracking-wider">Policy Details & Update</span>
           <h3 id="modalPolicyNo" class="text-lg font-bold text-slate-900">--</h3>
         </div>
         <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
@@ -70,12 +79,12 @@
       <div class="p-6 overflow-y-auto space-y-5">
         
         <!-- Overwrite Warning Banner -->
-        <div id="overwriteWarning" class="hidden p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs leading-relaxed">
-          <strong>⚠️ Existing Record Found:</strong> This policy already has remarks logged. Saving will overwrite the previous entry.
+        <div id="overwriteWarning" class="hidden p-3.5 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs leading-relaxed">
+          <strong>⚠️ Existing Record Found:</strong> This policy already has remarks logged. Saving will update and overwrite the current remark entry.
         </div>
 
-        <!-- PRIORITY SECTION -->
-        <div class="p-4 bg-blue-50/60 rounded-xl border border-blue-100 space-y-4">
+        <!-- PRIORITY ACTIONS -->
+        <div class="p-4 bg-blue-50/70 rounded-xl border border-blue-100 space-y-4">
           <div class="text-xs font-bold text-blue-900 uppercase tracking-wide flex items-center gap-1.5">
             <span class="w-2 h-2 rounded-full bg-blue-600"></span>
             Priority Action Fields
@@ -87,6 +96,7 @@
             <select id="modalRemark" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <option value="">-- Select Remark --</option>
               <option value="Pending Delivery">Pending Delivery</option>
+              <option value="Delivered to Customer">Delivered to Customer</option>
             </select>
           </div>
 
@@ -100,9 +110,9 @@
               <option value="Customer Changed Location">Customer Changed Location</option>
               <option value="Customer Out of Country/Province">Customer Out of Country/Province</option>
               <option value="Waiting for Appointment Confirmation">Waiting for Appointment Confirmation</option>
+              <option value="Unable to Contact Customer">Unable to Contact Customer</option>
               <option value="__CUSTOM__">(Allow to add new / Custom Reason)</option>
             </select>
-            <!-- Custom Reason Input -->
             <input id="customReasonInput" type="text" placeholder="Type new custom reason..." class="hidden mt-2 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
           </div>
 
@@ -113,23 +123,53 @@
           </div>
         </div>
 
-        <!-- Read-Only Policy Details -->
+        <!-- COMPLETE INFORMATION: Policy & Customer Data -->
         <div>
-          <span class="text-xs uppercase font-semibold text-slate-400 block mb-2">Customer & Policy Details</span>
-          <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-xs">
-            <div><span class="text-slate-400">Owner:</span> <span id="modalPoName" class="font-medium text-slate-800"></span></div>
-            <div><span class="text-slate-400">Product:</span> <span id="modalProduct" class="font-medium text-slate-800"></span></div>
-            <div><span class="text-slate-400">Kit Type:</span> <span id="modalKit" class="font-medium text-slate-800"></span></div>
-            <div><span class="text-slate-400">Type:</span> <span id="modalProductType" class="font-medium text-slate-800"></span></div>
-            <div><span class="text-slate-400">Transfer:</span> <span id="modalTransfer" class="font-medium text-slate-800"></span></div>
-            <div><span class="text-slate-400">Servicing:</span> <span id="modalServicing" class="font-medium text-slate-800"></span></div>
+          <span class="text-xs uppercase font-bold text-slate-500 tracking-wider block mb-2">Complete Policy Information</span>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+            <div>
+              <span class="text-slate-400 block font-medium">Policy Number (Col D)</span>
+              <span id="detailPolicyNo" class="font-bold text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">PO Name (Col E)</span>
+              <span id="detailPoName" class="font-semibold text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Kit Type (Col B)</span>
+              <span id="detailKitType" class="text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Transfer Case (Col C)</span>
+              <span id="detailTransfer" class="text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Product (Col F)</span>
+              <span id="detailProduct" class="text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Product Type (Col G)</span>
+              <span id="detailProductType" class="text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Agent Name (Col A)</span>
+              <span id="detailAgentName" class="text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Servicing Agent (Col I)</span>
+              <span id="detailServicingAgent" class="text-slate-800">--</span>
+            </div>
+            <div>
+              <span class="text-slate-400 block font-medium">Telegram Linkage (Col H)</span>
+              <span id="detailTelegram" class="text-slate-800">--</span>
+            </div>
           </div>
         </div>
 
       </div>
 
-      <!-- Modal Footer -->
-      <div class="px-6 py-3.5 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
+      <!-- Modal Actions -->
+      <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-2">
         <button onclick="closeModal()" type="button" class="px-4 py-2 border border-slate-300 text-slate-700 text-xs font-medium rounded-lg hover:bg-slate-100 transition">Cancel</button>
         <button onclick="submitUpdate()" id="saveBtn" type="button" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">Save Update</button>
       </div>
@@ -138,13 +178,13 @@
   </div>
 
   <script>
-    // Replace with your current Google Apps Script Web App URL
+    // Paste your deployed Google Apps Script Web App URL here
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1UhBG9YdWFQVJS0Upukv0zPjueu-tICqrjNB9a2LQb4qxLCEXmpPJ17W1md9EgLHJvQ/exec";
     let activePolicies = [];
     let currentSelectedPolicy = null;
+    let currentFilter = "all"; // 'all', 'pending', or 'remarked'
 
     window.addEventListener("DOMContentLoaded", async () => {
-      // Set default date picker to today
       document.getElementById("modalDateRemark").value = new Date().toISOString().split("T")[0];
       await fetchAgentList();
     });
@@ -163,17 +203,17 @@
           });
         }
       } catch (err) {
-        showStatus("Failed to load agents", "error");
+        showStatus("Failed to load agent list", "error");
       }
     }
 
     async function loadAgentPolicies() {
       const agent = document.getElementById("agentSelect").value;
-      const grid = document.getElementById("cardsGrid");
       const heading = document.getElementById("policyCountHeading");
-      grid.innerHTML = "";
 
       if (!agent) {
+        activePolicies = [];
+        updateCountsAndRender();
         heading.textContent = "Select an agent above";
         return;
       }
@@ -185,8 +225,8 @@
         
         if (json.status === "success") {
           activePolicies = json.policies;
-          heading.textContent = `Found ${activePolicies.length} policies for ${agent}`;
-          renderCards(activePolicies);
+          heading.textContent = `Policies for ${agent}`;
+          updateCountsAndRender();
         }
       } catch (err) {
         heading.textContent = "Error loading policies.";
@@ -194,21 +234,60 @@
       }
     }
 
-    function renderCards(policies) {
+    function setStatusFilter(filterType) {
+      currentFilter = filterType;
+      
+      const buttons = {
+        all: document.getElementById("filterAll"),
+        pending: document.getElementById("filterPending"),
+        remarked: document.getElementById("filterRemarked")
+      };
+
+      Object.keys(buttons).forEach(key => {
+        if (key === filterType) {
+          buttons[key].className = "px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold";
+        } else {
+          buttons[key].className = "px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900";
+        }
+      });
+
+      renderFilteredCards();
+    }
+
+    function updateCountsAndRender() {
+      const total = activePolicies.length;
+      const remarked = activePolicies.filter(p => p.remark && p.remark.trim() !== "").length;
+      const pending = total - remarked;
+
+      document.getElementById("countAll").textContent = total;
+      document.getElementById("countPending").textContent = pending;
+      document.getElementById("countRemarked").textContent = remarked;
+
+      renderFilteredCards();
+    }
+
+    function renderFilteredCards() {
       const grid = document.getElementById("cardsGrid");
       grid.innerHTML = "";
 
-      if (!policies.length) {
-        grid.innerHTML = `<div class="col-span-full py-8 text-center text-sm text-slate-400">No policies found for this agent.</div>`;
+      let filtered = activePolicies;
+      if (currentFilter === "pending") {
+        filtered = activePolicies.filter(p => !p.remark || p.remark.trim() === "");
+      } else if (currentFilter === "remarked") {
+        filtered = activePolicies.filter(p => p.remark && p.remark.trim() !== "");
+      }
+
+      if (!filtered.length) {
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-sm text-slate-400">No policies found for this status.</div>`;
         return;
       }
 
-      policies.forEach(p => {
+      filtered.forEach(p => {
         const hasRemark = Boolean(p.remark && p.remark.trim() !== "");
         const card = document.createElement("div");
 
         card.className = `p-4 rounded-xl border cursor-pointer transition transform hover:-translate-y-0.5 hover:shadow-md bg-white ${
-          hasRemark ? "border-emerald-500 ring-1 ring-emerald-500/20 bg-emerald-50/20" : "border-slate-200 hover:border-slate-300"
+          hasRemark ? "border-emerald-500 ring-1 ring-emerald-500/20 bg-emerald-50/15" : "border-slate-200 hover:border-slate-300"
         }`;
 
         card.innerHTML = `
@@ -220,19 +299,21 @@
             ${
               hasRemark 
                 ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Already Remarked</span>`
-                : `<span class="bg-slate-100 text-slate-600 text-[10px] font-medium px-2 py-0.5 rounded-full">Pending</span>`
+                : `<span class="bg-slate-100 text-slate-600 text-[10px] font-medium px-2 py-0.5 rounded-full">Needs Review</span>`
             }
           </div>
           <div class="text-xs text-slate-500 space-y-1 mb-3">
-            <div><span class="text-slate-400">Product:</span> ${p.product || "N/A"} (${p.productType || "-"})</div>
-            <div><span class="text-slate-400">Kit:</span> ${p.kitType || "-"}</div>
+            <div><span class="text-slate-400">Product:</span> ${p.product || "-"} (${p.productType || "-"})</div>
+            <div><span class="text-slate-400">Kit Type:</span> ${p.kitType || "-"}</div>
+            <div><span class="text-slate-400">Servicing:</span> ${p.servicingAgent || "-"}</div>
           </div>
           ${
             hasRemark 
-              ? `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded text-[11px] text-emerald-800 truncate">
-                  <strong>${p.remark}:</strong> ${p.reason || "No reason recorded"}
+              ? `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded text-[11px] text-emerald-800 leading-snug">
+                  <span class="font-bold">${p.remark}:</span> ${p.reason || "No reason logged"}
+                  ${p.dateRemark ? `<div class="text-[10px] text-emerald-600 mt-0.5 font-medium">Date: ${p.dateRemark}</div>` : ""}
                  </div>`
-              : `<div class="text-[11px] text-slate-400 italic">Click card to add remark</div>`
+              : `<div class="text-[11px] text-slate-400 italic">Click card to record remark</div>`
           }
         `;
 
@@ -243,26 +324,31 @@
 
     function openEditModal(p) {
       currentSelectedPolicy = p;
-      document.getElementById("modalPolicyNo").textContent = p.policyNumber;
-      document.getElementById("modalPoName").textContent = p.poName || "-";
-      document.getElementById("modalProduct").textContent = p.product || "-";
-      document.getElementById("modalKit").textContent = p.kitType || "-";
-      document.getElementById("modalProductType").textContent = p.productType || "-";
-      document.getElementById("modalTransfer").textContent = p.transferCase || "-";
-      document.getElementById("modalServicing").textContent = p.servicingAgent || "-";
 
+      // Populate Read-Only Complete Info
+      document.getElementById("modalPolicyNo").textContent = p.policyNumber;
+      document.getElementById("detailPolicyNo").textContent = p.policyNumber || "-";
+      document.getElementById("detailPoName").textContent = p.poName || "-";
+      document.getElementById("detailKitType").textContent = p.kitType || "-";
+      document.getElementById("detailTransfer").textContent = p.transferCase || "-";
+      document.getElementById("detailProduct").textContent = p.product || "-";
+      document.getElementById("detailProductType").textContent = p.productType || "-";
+      document.getElementById("detailAgentName").textContent = p.agentName || "-";
+      document.getElementById("detailServicingAgent").textContent = p.servicingAgent || "-";
+      document.getElementById("detailTelegram").textContent = p.telegramLinkage || "-";
+
+      // Overwrite warning
       const hasExistingData = Boolean(p.remark || p.reason);
       const warningBanner = document.getElementById("overwriteWarning");
-
       if (hasExistingData) {
         warningBanner.classList.remove("hidden");
       } else {
         warningBanner.classList.add("hidden");
       }
 
-      // Populate Prioritized inputs
+      // Populate Priority Inputs
       const remarkSelect = document.getElementById("modalRemark");
-      remarkSelect.value = (p.remark && p.remark.includes("Pending")) ? "Pending Delivery" : (p.remark || "");
+      remarkSelect.value = p.remark || "";
 
       const reasonSelect = document.getElementById("modalReason");
       const customInput = document.getElementById("customReasonInput");
@@ -271,7 +357,8 @@
         "Customer Not Available",
         "Customer Changed Location",
         "Customer Out of Country/Province",
-        "Waiting for Appointment Confirmation"
+        "Waiting for Appointment Confirmation",
+        "Unable to Contact Customer"
       ];
 
       if (p.reason && !standardReasons.includes(p.reason)) {
@@ -320,9 +407,8 @@
         return;
       }
 
-      // Check if data existed and confirm overwrite
       if (currentSelectedPolicy.remark || currentSelectedPolicy.reason) {
-        const proceed = confirm("This policy already has remarks logged. Are you sure you want to overwrite it?");
+        const proceed = confirm("This policy already contains existing remarks. Do you wish to overwrite it?");
         if (!proceed) return;
       }
 
@@ -345,19 +431,18 @@
         const json = await res.json();
 
         if (json.status === "success") {
-          // Update in local memory
           currentSelectedPolicy.remark = remark;
           currentSelectedPolicy.reason = reason;
           currentSelectedPolicy.dateRemark = dateRemark;
-          renderCards(activePolicies);
-
+          
+          updateCountsAndRender();
           closeModal();
           showStatus("Updated successfully!", "success");
         } else {
           alert(`Error: ${json.message}`);
         }
       } catch (err) {
-        alert("Failed to update data. Please try again.");
+        alert("Failed to update data. Please check your connection.");
       } finally {
         saveBtn.disabled = false;
         saveBtn.textContent = "Save Update";
@@ -376,10 +461,10 @@
           showStatus("Policy found", "success");
           openEditModal(json.data);
         } else {
-          showStatus("Policy number not found", "error");
+          showStatus("Policy not found", "error");
         }
       } catch (err) {
-        showStatus("Search failed", "error");
+        showStatus("Search request failed", "error");
       }
     }
 
