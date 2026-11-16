@@ -531,6 +531,17 @@
         return;
       }
 
+      // Confirmation check for ePolicy Kit marked as Delivered to Customer
+      const isEPolicyKit = (currentSelectedPolicy.kitType || "").trim().toLowerCase() === "epolicy kit";
+      if (isEPolicyKit && remark === "Delivered to Customer") {
+        const confirmTelegram = confirm(
+          "តើអ្នកប្រាកដទេថា អតិថិជននេះបានលីងតេលេក្រាមរួចរាល់ហើយ?\n" +
+          "Are you sure this policy is already link to telegram?\n\n" +
+          "បញ្ចាក់៖ ករណី ePolicyKit ដែលបានលីងតេលេក្រាម ទើបសំគាល់ថា Delivery to Customer"
+        );
+        if (!confirmTelegram) return;
+      }
+
       if (currentSelectedPolicy.remark || currentSelectedPolicy.reason) {
         const proceed = confirm("This policy already contains existing remarks. Do you wish to overwrite it?");
         if (!proceed) return;
