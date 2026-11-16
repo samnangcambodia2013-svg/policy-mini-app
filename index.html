@@ -30,7 +30,7 @@
       <div id="statusBadge" class="hidden mt-3 sm:mt-0 text-xs font-semibold px-3 py-1.5 rounded-full"></div>
     </header>
 
-    <!-- Search & Filters -->
+    <!-- Search & Agent Selection -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="md:col-span-2 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Select Agent</label>
@@ -48,20 +48,33 @@
       </div>
     </div>
 
-    <!-- Filter Buttons Bar -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+    <!-- Filter Controls Bar -->
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
       <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
       
-      <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto">
-        <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
-          All (<span id="countAll">0</span>)
-        </button>
-        <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
-          Needs Review (<span id="countPending">0</span>)
-        </button>
-        <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
-          Already Remarked (<span id="countRemarked">0</span>)
-        </button>
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Kit Type Filter -->
+        <select id="kitTypeFilter" onchange="setKitTypeFilter(this.value)" class="border border-slate-200 bg-white rounded-lg px-3 py-2 text-xs font-medium text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="all">All Kit Types</option>
+        </select>
+
+        <!-- Remark Filter -->
+        <select id="remarkFilter" onchange="setRemarkFilter(this.value)" class="border border-slate-200 bg-white rounded-lg px-3 py-2 text-xs font-medium text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+          <option value="all">All Remarks</option>
+        </select>
+
+        <!-- Review Status Filter Pills -->
+        <div class="inline-flex rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto">
+          <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
+            All (<span id="countAll">0</span>)
+          </button>
+          <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+            Needs Review (<span id="countPending">0</span>)
+          </button>
+          <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+            Already Remarked (<span id="countRemarked">0</span>)
+          </button>
+        </div>
       </div>
     </div>
 
@@ -129,7 +142,7 @@
           </div>
         </div>
 
-        <!-- COMPLETE INFORMATION: Clean titles without "(Col X)" -->
+        <!-- COMPLETE INFORMATION -->
         <div>
           <span class="text-xs uppercase font-bold text-slate-500 tracking-wider block mb-2">Complete Policy Information</span>
           <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200 text-xs">
@@ -188,6 +201,8 @@
     let activePolicies = [];
     let currentSelectedPolicy = null;
     let currentFilter = "all";
+    let currentKitTypeFilter = "all";
+    let currentRemarkFilter = "all";
 
     window.addEventListener("DOMContentLoaded", async () => {
       document.getElementById("modalDateRemark").value = new Date().toISOString().split("T")[0];
@@ -216,8 +231,13 @@
       const agent = document.getElementById("agentSelect").value;
       const heading = document.getElementById("policyCountHeading");
 
+      // Reset dropdown filters when switching agents
+      currentKitTypeFilter = "all";
+      currentRemarkFilter = "all";
+
       if (!agent) {
         activePolicies = [];
+        populateDynamicFilters();
         updateCountsAndRender();
         heading.textContent = "Select an agent above";
         return;
@@ -231,12 +251,62 @@
         if (json.status === "success") {
           activePolicies = json.policies;
           heading.textContent = `Policies for ${agent}`;
+          populateDynamicFilters();
           updateCountsAndRender();
         }
       } catch (err) {
         heading.textContent = "Error loading policies.";
         showStatus("Could not fetch policies", "error");
       }
+    }
+
+    function populateDynamicFilters() {
+      // 1. Populate Kit Type Dropdown
+      const kitSelect = document.getElementById("kitTypeFilter");
+      const uniqueKits = [...new Set(activePolicies.map(p => (p.kitType || "").trim()).filter(Boolean))].sort();
+      
+      kitSelect.innerHTML = `<option value="all">All Kit Types</option>`;
+      uniqueKits.forEach(kit => {
+        const opt = document.createElement("option");
+        opt.value = kit;
+        opt.textContent = kit;
+        kitSelect.appendChild(opt);
+      });
+      kitSelect.value = uniqueKits.includes(currentKitTypeFilter) ? currentKitTypeFilter : "all";
+      currentKitTypeFilter = kitSelect.value;
+
+      // 2. Populate Remark Dropdown
+      const remarkSelect = document.getElementById("remarkFilter");
+      const uniqueRemarks = [...new Set(activePolicies.map(p => (p.remark || "").trim()).filter(Boolean))].sort();
+      const hasBlankRemarks = activePolicies.some(p => !p.remark || p.remark.trim() === "");
+
+      remarkSelect.innerHTML = `<option value="all">All Remarks</option>`;
+      if (hasBlankRemarks) {
+        const blankOpt = document.createElement("option");
+        blankOpt.value = "__BLANK__";
+        blankOpt.textContent = "(No Remark / Blank)";
+        remarkSelect.appendChild(blankOpt);
+      }
+      uniqueRemarks.forEach(rem => {
+        const opt = document.createElement("option");
+        opt.value = rem;
+        opt.textContent = rem;
+        remarkSelect.appendChild(opt);
+      });
+
+      const validRemarkValues = ["all", "__BLANK__", ...uniqueRemarks];
+      remarkSelect.value = validRemarkValues.includes(currentRemarkFilter) ? currentRemarkFilter : "all";
+      currentRemarkFilter = remarkSelect.value;
+    }
+
+    function setKitTypeFilter(kitType) {
+      currentKitTypeFilter = kitType;
+      renderFilteredCards();
+    }
+
+    function setRemarkFilter(remarkVal) {
+      currentRemarkFilter = remarkVal;
+      renderFilteredCards();
     }
 
     function setStatusFilter(filterType) {
@@ -276,14 +346,30 @@
       grid.innerHTML = "";
 
       let filtered = activePolicies;
+
+      // 1. Filter by Status Pill
       if (currentFilter === "pending") {
-        filtered = activePolicies.filter(p => !p.remark || p.remark.trim() === "");
+        filtered = filtered.filter(p => !p.remark || p.remark.trim() === "");
       } else if (currentFilter === "remarked") {
-        filtered = activePolicies.filter(p => p.remark && p.remark.trim() !== "");
+        filtered = filtered.filter(p => p.remark && p.remark.trim() !== "");
+      }
+
+      // 2. Filter by Kit Type
+      if (currentKitTypeFilter !== "all") {
+        filtered = filtered.filter(p => (p.kitType || "").trim() === currentKitTypeFilter);
+      }
+
+      // 3. Filter by Remark
+      if (currentRemarkFilter !== "all") {
+        if (currentRemarkFilter === "__BLANK__") {
+          filtered = filtered.filter(p => !p.remark || p.remark.trim() === "");
+        } else {
+          filtered = filtered.filter(p => (p.remark || "").trim() === currentRemarkFilter);
+        }
       }
 
       if (!filtered.length) {
-        grid.innerHTML = `<div class="col-span-full py-10 text-center text-sm text-slate-400">No policies found for this status.</div>`;
+        grid.innerHTML = `<div class="col-span-full py-10 text-center text-sm text-slate-400">No policies match the selected filters.</div>`;
         return;
       }
 
@@ -346,7 +432,6 @@
     function openEditModal(p) {
       currentSelectedPolicy = p;
 
-      // Populate Clean Details without "(Col X)"
       document.getElementById("modalPolicyNo").textContent = p.policyNumber;
       document.getElementById("detailPolicyNo").textContent = p.policyNumber || "-";
       document.getElementById("detailPoName").textContent = p.poName || "-";
@@ -429,7 +514,7 @@
       }
 
       if (remark === "Delivered to Customer") {
-        reason = ""; // Reason is not required for Delivered
+        reason = "";
       } else {
         reason = document.getElementById("modalReason").value;
         if (reason === "__CUSTOM__") {
@@ -474,6 +559,7 @@
           currentSelectedPolicy.reason = reason;
           currentSelectedPolicy.dateRemark = dateRemark;
           
+          populateDynamicFilters();
           updateCountsAndRender();
           closeModal();
           showStatus("Updated successfully!", "success");
