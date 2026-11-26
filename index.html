@@ -36,6 +36,7 @@
         <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">Select Agent</label>
         <select id="agentSelect" onchange="loadAgentPolicies()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none">
           <option value="">-- Choose Agent to Display Policies --</option>
+          <option value="__ALL__">ALL Agents (Summary Dashboard)</option>
         </select>
       </div>
 
@@ -48,13 +49,96 @@
       </div>
     </div>
 
+    <!-- Breezeway Summary Dashboard (Visible when ALL Agents is selected) -->
+    <section id="breezewayDashboard" class="hidden mb-6 space-y-4">
+      <!-- Top KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Policies</span>
+            <span class="w-2 h-2 rounded-full bg-slate-800"></span>
+          </div>
+          <div id="kpiTotal" class="text-2xl font-bold text-slate-900 mt-1">0</div>
+          <div id="kpiAgentCount" class="text-[11px] text-slate-500 mt-1">Across 0 agents</div>
+        </div>
 
-    <!-- Filter Controls Section -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-600">Needs Review</span>
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+          </div>
+          <div id="kpiPending" class="text-2xl font-bold text-amber-600 mt-1">0</div>
+          <div id="kpiPendingPct" class="text-[11px] text-slate-500 mt-1">0% remaining</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">Already Remarked</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          </div>
+          <div id="kpiRemarked" class="text-2xl font-bold text-emerald-600 mt-1">0</div>
+          <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+            <div id="kpiProgressBar" class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <div id="kpiRemarkedPct" class="text-[11px] text-slate-500 mt-1">0% completed</div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider text-blue-600">Delivered</span>
+            <span class="w-2 h-2 rounded-full bg-blue-600"></span>
+          </div>
+          <div id="kpiDelivered" class="text-2xl font-bold text-blue-600 mt-1">0</div>
+          <div id="kpiPendingDelivery" class="text-[11px] text-slate-500 mt-1">0 pending delivery</div>
+        </div>
+      </div>
+
+      <!-- Breakdown & Agent Summary -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <!-- Kit Type & Remark Distribution -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-4">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Kit Type Distribution</h3>
+            <div id="dashKitBreakdown" class="space-y-2 text-xs"></div>
+          </div>
+          <div class="border-t border-slate-100 pt-3.5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-2.5">Remark Breakdown</h3>
+            <div id="dashRemarkBreakdown" class="space-y-2 text-xs"></div>
+          </div>
+        </div>
+
+        <!-- Per-Agent Summary Table -->
+        <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col">
+          <div class="px-4 py-3 border-b border-slate-100 flex items-center justify-between bg-slate-50/70">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Agent Performance Overview</h3>
+              <p class="text-[11px] text-slate-400">Click any agent row to view their individual policies</p>
+            </div>
+            <span id="dashTableBadge" class="text-[11px] font-semibold text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-full">0 Agents</span>
+          </div>
+          <div class="overflow-x-auto max-h-72 overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="bg-slate-50 text-[11px] uppercase text-slate-400 font-semibold sticky top-0 border-b border-slate-100">
+                <tr>
+                  <th class="py-2.5 px-4">Agent</th>
+                  <th class="py-2.5 px-3 text-right">Total</th>
+                  <th class="py-2.5 px-3 text-right">Needs Review</th>
+                  <th class="py-2.5 px-3 text-right">Remarked</th>
+                  <th class="py-2.5 px-3 text-right">Delivered</th>
+                  <th class="py-2.5 px-4 text-right">Completion</th>
+                </tr>
+              </thead>
+              <tbody id="dashAgentTableBody" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Controls Section (All Aligned Left) -->
     <div class="space-y-2.5 mb-5">
-      <!-- Heading on the Left -->
       <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
 
-      <!-- All 3 Filter Pill Bars Stacked on the Left -->
       <div class="flex flex-col items-start gap-2.5">
         <!-- Review Status Filter Pills -->
         <div class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
@@ -84,7 +168,6 @@
         </div>
       </div>
     </div>
-
 
     <!-- Card Grid -->
     <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -206,6 +289,7 @@
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx1UhBG9YdWFQVJS0Upukv0zPjueu-tICqrjNB9a2LQb4qxLCEXmpPJ17W1md9EgLHJvQ/exec";
+    let agentList = [];
     let activePolicies = [];
     let currentSelectedPolicy = null;
     let currentFilter = "all";
@@ -225,8 +309,9 @@
         const res = await fetch(`${SCRIPT_URL}?action=getAgents`);
         const json = await res.json();
         if (json.status === "success") {
+          agentList = json.agents || [];
           const select = document.getElementById("agentSelect");
-          json.agents.forEach(agent => {
+          agentList.forEach(agent => {
             const opt = document.createElement("option");
             opt.value = agent;
             opt.textContent = agent;
@@ -241,18 +326,59 @@
     async function loadAgentPolicies() {
       const agent = document.getElementById("agentSelect").value;
       const heading = document.getElementById("policyCountHeading");
+      const dashboard = document.getElementById("breezewayDashboard");
 
       currentKitTypeFilter = "all";
       currentRemarkFilter = "all";
 
       if (!agent) {
         activePolicies = [];
+        dashboard.classList.add("hidden");
         document.getElementById("extraFilterBars").classList.add("hidden");
         updateCountsAndRender();
         heading.textContent = "Select an agent above";
         return;
       }
 
+      if (agent === "__ALL__") {
+        heading.textContent = "Loading all agents' policies...";
+        dashboard.classList.add("hidden");
+        try {
+          let allPolicies = [];
+          // Try single endpoint first; fall back to fetching each agent in parallel
+          try {
+            const res = await fetch(`${SCRIPT_URL}?action=getAllPolicies`);
+            const json = await res.json();
+            if (json.status === "success" && Array.isArray(json.policies)) {
+              allPolicies = json.policies;
+            }
+          } catch (_) {}
+
+          if (!allPolicies.length && agentList.length) {
+            const results = await Promise.all(
+              agentList.map(ag =>
+                fetch(`${SCRIPT_URL}?action=getByAgent&agentName=${encodeURIComponent(ag)}`)
+                  .then(r => r.json())
+                  .then(j => (j.status === "success" ? j.policies.map(p => ({ ...p, agentName: p.agentName || ag })) : []))
+                  .catch(() => [])
+              )
+            );
+            allPolicies = results.flat();
+          }
+
+          activePolicies = allPolicies;
+          heading.textContent = `All Policies Across All Agents (${activePolicies.length})`;
+          document.getElementById("extraFilterBars").classList.remove("hidden");
+          dashboard.classList.remove("hidden");
+          updateCountsAndRender();
+        } catch (err) {
+          heading.textContent = "Error loading all policies.";
+          showStatus("Could not fetch all policies", "error");
+        }
+        return;
+      }
+
+      dashboard.classList.add("hidden");
       heading.textContent = "Loading policies...";
       try {
         const res = await fetch(`${SCRIPT_URL}?action=getByAgent&agentName=${encodeURIComponent(agent)}`);
@@ -270,8 +396,148 @@
       }
     }
 
+    function renderBreezewayDashboard() {
+      const selectedAgent = document.getElementById("agentSelect").value;
+      const dashboard = document.getElementById("breezewayDashboard");
+      if (selectedAgent !== "__ALL__") {
+        dashboard.classList.add("hidden");
+        return;
+      }
+      dashboard.classList.remove("hidden");
+
+      const total = activePolicies.length;
+      const remarked = activePolicies.filter(p => p.remark && p.remark.trim() !== "").length;
+      const pending = total - remarked;
+      const delivered = activePolicies.filter(p => (p.remark || "").trim() === "Delivered to Customer").length;
+      const pendingDelivery = activePolicies.filter(p => (p.remark || "").trim() === "Pending Delivery").length;
+
+      const remarkedPct = total ? Math.round((remarked / total) * 100) : 0;
+      const pendingPct = total ? 100 - remarkedPct : 0;
+
+      // Group by Agent
+      const agentMap = new Map();
+      agentList.forEach(ag => {
+        agentMap.set(ag, { agent: ag, total: 0, pending: 0, remarked: 0, delivered: 0 });
+      });
+      activePolicies.forEach(p => {
+        const ag = (p.agentName || p.servicingAgent || "Unassigned").trim();
+        if (!agentMap.has(ag)) {
+          agentMap.set(ag, { agent: ag, total: 0, pending: 0, remarked: 0, delivered: 0 });
+        }
+        const stat = agentMap.get(ag);
+        stat.total += 1;
+        const hasRem = Boolean(p.remark && p.remark.trim() !== "");
+        if (hasRem) {
+          stat.remarked += 1;
+          if (p.remark.trim() === "Delivered to Customer") stat.delivered += 1;
+        } else {
+          stat.pending += 1;
+        }
+      });
+
+      const agentStats = [...agentMap.values()].filter(a => a.total > 0).sort((a, b) => b.total - a.total);
+
+      // Update Top KPI Cards
+      document.getElementById("kpiTotal").textContent = total;
+      document.getElementById("kpiAgentCount").textContent = `Across ${agentStats.length} active agent${agentStats.length === 1 ? "" : "s"}`;
+      document.getElementById("kpiPending").textContent = pending;
+      document.getElementById("kpiPendingPct").textContent = `${pendingPct}% remaining`;
+      document.getElementById("kpiRemarked").textContent = remarked;
+      document.getElementById("kpiProgressBar").style.width = `${remarkedPct}%`;
+      document.getElementById("kpiRemarkedPct").textContent = `${remarkedPct}% completed`;
+      document.getElementById("kpiDelivered").textContent = delivered;
+      document.getElementById("kpiPendingDelivery").textContent = `${pendingDelivery} pending delivery`;
+
+      // Kit Type Breakdown
+      const kitCounts = {};
+      activePolicies.forEach(p => {
+        const k = (p.kitType || "Unspecified").trim();
+        kitCounts[k] = (kitCounts[k] || 0) + 1;
+      });
+      const kitEl = document.getElementById("dashKitBreakdown");
+      kitEl.innerHTML = Object.entries(kitCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([label, count]) => {
+          const pct = total ? Math.round((count / total) * 100) : 0;
+          return `
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="font-medium text-slate-700">${label}</span>
+                <span class="text-slate-500 font-semibold">${count} <span class="text-slate-400 font-normal">(${pct}%)</span></span>
+              </div>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div class="bg-blue-600 h-full rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join("") || `<div class="text-slate-400">No data</div>`;
+
+      // Remark Breakdown
+      const remarkCounts = {};
+      activePolicies.forEach(p => {
+        const r = (p.remark || "").trim() || "Needs Review";
+        remarkCounts[r] = (remarkCounts[r] || 0) + 1;
+      });
+      const remEl = document.getElementById("dashRemarkBreakdown");
+      remEl.innerHTML = Object.entries(remarkCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([label, count]) => {
+          const pct = total ? Math.round((count / total) * 100) : 0;
+          const barColor = label === "Delivered to Customer"
+            ? "bg-emerald-500"
+            : label === "Pending Delivery"
+            ? "bg-amber-500"
+            : "bg-slate-400";
+          return `
+            <div>
+              <div class="flex justify-between mb-1">
+                <span class="font-medium text-slate-700">${label}</span>
+                <span class="text-slate-500 font-semibold">${count} <span class="text-slate-400 font-normal">(${pct}%)</span></span>
+              </div>
+              <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                <div class="${barColor} h-full rounded-full" style="width: ${pct}%"></div>
+              </div>
+            </div>
+          `;
+        }).join("") || `<div class="text-slate-400">No data</div>`;
+
+      // Per-Agent Summary Table
+      document.getElementById("dashTableBadge").textContent = `${agentStats.length} Agent${agentStats.length === 1 ? "" : "s"}`;
+      const tbody = document.getElementById("dashAgentTableBody");
+      tbody.innerHTML = agentStats.map(st => {
+        const comp = st.total ? Math.round((st.remarked / st.total) * 100) : 0;
+        const badgeClass = comp === 100
+          ? "bg-emerald-100 text-emerald-700"
+          : comp >= 50
+          ? "bg-blue-100 text-blue-700"
+          : "bg-amber-100 text-amber-700";
+        const safeAgent = st.agent.replace(/'/g, "\\'");
+        return `
+          <tr onclick="drillDownAgent('${safeAgent}')" class="hover:bg-blue-50/50 cursor-pointer transition">
+            <td class="py-2.5 px-4 font-semibold text-slate-800 whitespace-nowrap">${st.agent}</td>
+            <td class="py-2.5 px-3 text-right font-semibold text-slate-700">${st.total}</td>
+            <td class="py-2.5 px-3 text-right ${st.pending > 0 ? "text-amber-600 font-semibold" : "text-slate-400"}">${st.pending}</td>
+            <td class="py-2.5 px-3 text-right text-emerald-600 font-medium">${st.remarked}</td>
+            <td class="py-2.5 px-3 text-right text-blue-600 font-medium">${st.delivered}</td>
+            <td class="py-2.5 px-4 text-right">
+              <span class="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">${comp}%</span>
+            </td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="6" class="py-6 text-center text-slate-400">No agent records found.</td></tr>`;
+    }
+
+    function drillDownAgent(agentName) {
+      const select = document.getElementById("agentSelect");
+      const exists = [...select.options].some(o => o.value === agentName);
+      if (exists) {
+        select.value = agentName;
+        loadAgentPolicies();
+      }
+    }
+
     function renderDynamicFilterPills() {
-      // 1. Render Kit Type Pills (counts reflect current Status & Remark filters)
+      // 1. Render Kit Type Pills
       const kitGroup = document.getElementById("kitTypePillGroup");
       const uniqueKits = [...new Set(activePolicies.map(p => (p.kitType || "").trim()).filter(Boolean))].sort();
       if (!uniqueKits.includes(currentKitTypeFilter)) currentKitTypeFilter = "all";
@@ -288,7 +554,7 @@
       });
       kitGroup.innerHTML = kitHtml;
 
-      // 2. Render Remark Pills (counts reflect current Status & Kit Type filters)
+      // 2. Render Remark Pills
       const remarkGroup = document.getElementById("remarkPillGroup");
       const uniqueRemarks = [...new Set(activePolicies.map(p => (p.remark || "").trim()).filter(Boolean))].sort();
       const hasBlankRemarks = activePolicies.some(p => !p.remark || p.remark.trim() === "");
@@ -357,7 +623,6 @@
     }
 
     function updateCountsAndRender() {
-      // Status pill counts reflect active Kit Type & Remark filters
       const baseForStatusCounts = activePolicies.filter(p => matchesKitType(p) && matchesRemark(p));
       const total = baseForStatusCounts.length;
       const remarked = baseForStatusCounts.filter(p => p.remark && p.remark.trim() !== "").length;
@@ -367,6 +632,7 @@
       document.getElementById("countPending").textContent = pending;
       document.getElementById("countRemarked").textContent = remarked;
 
+      renderBreezewayDashboard();
       renderDynamicFilterPills();
       renderFilteredCards();
     }
@@ -375,6 +641,7 @@
       const grid = document.getElementById("cardsGrid");
       grid.innerHTML = "";
 
+      const isAllView = document.getElementById("agentSelect").value === "__ALL__";
       const filtered = activePolicies.filter(p => matchesStatus(p) && matchesKitType(p) && matchesRemark(p));
 
       if (!filtered.length) {
@@ -405,6 +672,7 @@
             }
           </div>
           <div class="text-xs text-slate-500 space-y-1 mb-3">
+            ${isAllView ? `<div><span class="text-slate-400">Agent:</span> <span class="font-semibold text-slate-700">${p.agentName || "-"}</span></div>` : ""}
             <div><span class="text-slate-400">Product:</span> ${p.product || "-"} (${p.productType || "-"})</div>
             <div><span class="text-slate-400">Kit Type:</span> ${p.kitType || "-"}</div>
             <div><span class="text-slate-400">Servicing:</span> ${p.servicingAgent || "-"}</div>
@@ -535,7 +803,6 @@
         return;
       }
 
-      // Confirmation check for ePolicy Kit marked as Delivered to Customer
       const isEPolicyKit = (currentSelectedPolicy.kitType || "").trim().toLowerCase() === "epolicy kit";
       if (isEPolicyKit && remark === "Delivered to Customer") {
         const confirmTelegram = confirm(
