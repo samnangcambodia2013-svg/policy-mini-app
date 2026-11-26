@@ -49,24 +49,54 @@
     </div>
 
     <!-- Filter Controls Section -->
-    <div class="space-y-3 mb-5">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
+<div class="space-y-3 mb-5">
+  <div class="flex flex-col gap-2">
+    <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
 
-        <!-- Review Status Filter Pills -->
-        <div class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
-          <span class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Status:</span>
-          <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
-            All (<span id="countAll">0</span>)
-          </button>
-          <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
-            Needs Review (<span id="countPending">0</span>)
-          </button>
-          <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
-            Already Remarked (<span id="countRemarked">0</span>)
-          </button>
-        </div>
-      </div>
+    <!-- 1. Review Status Filter Pills -->
+    <div class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full w-fit">
+      <span class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Status:</span>
+      <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
+        All (<span id="countAll">0</span>)
+      </button>
+      <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+        Needs Review (<span id="countPending">0</span>)
+      </button>
+      <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+        Already Remarked (<span id="countRemarked">0</span>)
+      </button>
+    </div>
+
+    <!-- 2. Kit Type Filter Pills (Next Line) -->
+    <div class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full w-fit">
+      <span class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Kit Type:</span>
+      <button id="filterKitAll" onclick="setKitFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
+        All (<span id="countKitAll">0</span>)
+      </button>
+      <button id="filterPhysicalKit" onclick="setKitFilter('physical')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+        Physical Kit (<span id="countPhysicalKit">0</span>)
+      </button>
+      <button id="filterEpolicyKit" onclick="setKitFilter('epolicy')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+        ePolicy Kit (<span id="countEpolicyKit">0</span>)
+      </button>
+    </div>
+
+    <!-- 3. Remark Filter Pills (Next Line) -->
+    <div class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full w-fit">
+      <span class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Remark:</span>
+      <button id="filterRemarkAll" onclick="setRemarkFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
+        All (<span id="countRemarkAll">0</span>)
+      </button>
+      <button id="filterDelivered" onclick="setRemarkFilter('delivered')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+        Delivered To Customer (<span id="countDelivered">0</span>)
+      </button>
+      <button id="filterPendingDelivery" onclick="setRemarkFilter('pending_delivery')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+        Pending Delivery (<span id="countPendingDelivery">0</span>)
+      </button>
+    </div>
+  </div>
+</div>
+    
 
       <!-- Kit Type & Remark Pill Bars -->
       <div id="extraFilterBars" class="hidden flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3">
