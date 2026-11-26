@@ -50,42 +50,41 @@
 
 
     <!-- Filter Controls Section -->
-    <div class="mb-5">
-      <!-- Left Heading + Right-Aligned Filter Stack -->
-      <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-        <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600 pt-1">Select an agent above</h2>
+    <div class="space-y-2.5 mb-5">
+      <!-- Heading on the Left -->
+      <h2 id="policyCountHeading" class="text-sm font-semibold text-slate-600">Select an agent above</h2>
 
-        <!-- All Filter Pill Groups Stacked & Aligned Right -->
-        <div class="flex flex-col items-start md:items-end gap-2.5 w-full md:w-auto">
-          <!-- Review Status Filter Pills -->
-          <div class="inline-flex items-center shrink-0 rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
-            <span class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Status:</span>
-            <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
-              All (<span id="countAll">0</span>)
-            </button>
-            <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
-              Needs Review (<span id="countPending">0</span>)
-            </button>
-            <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
-              Already Remarked (<span id="countRemarked">0</span>)
-            </button>
+      <!-- All 3 Filter Pill Bars Stacked on the Left -->
+      <div class="flex flex-col items-start gap-2.5">
+        <!-- Review Status Filter Pills -->
+        <div class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
+          <span class="px-2.5 py-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider whitespace-nowrap">Status:</span>
+          <button id="filterAll" onclick="setStatusFilter('all')" class="px-3 py-1.5 rounded-md transition bg-blue-600 text-white font-semibold whitespace-nowrap">
+            All (<span id="countAll">0</span>)
+          </button>
+          <button id="filterPending" onclick="setStatusFilter('pending')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+            Needs Review (<span id="countPending">0</span>)
+          </button>
+          <button id="filterRemarked" onclick="setStatusFilter('remarked')" class="px-3 py-1.5 rounded-md transition text-slate-600 hover:text-slate-900 whitespace-nowrap">
+            Already Remarked (<span id="countRemarked">0</span>)
+          </button>
+        </div>
+
+        <!-- Kit Type & Remark Pill Bars -->
+        <div id="extraFilterBars" class="hidden flex flex-col items-start gap-2.5 w-full">
+          <!-- Kit Type Pills -->
+          <div id="kitTypePillGroup" class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
+            <!-- Populated dynamically -->
           </div>
 
-          <!-- Kit Type & Remark Pill Bars -->
-          <div id="extraFilterBars" class="hidden flex flex-col items-start md:items-end gap-2.5 w-full md:w-auto">
-            <!-- Kit Type Pills -->
-            <div id="kitTypePillGroup" class="inline-flex items-center shrink-0 rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
-              <!-- Populated dynamically -->
-            </div>
-
-            <!-- Remark Pills -->
-            <div id="remarkPillGroup" class="inline-flex items-center shrink-0 rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
-              <!-- Populated dynamically -->
-            </div>
+          <!-- Remark Pills -->
+          <div id="remarkPillGroup" class="inline-flex items-center rounded-lg border border-slate-200 bg-white p-1 text-xs font-medium shadow-sm overflow-x-auto max-w-full">
+            <!-- Populated dynamically -->
           </div>
         </div>
       </div>
     </div>
+
 
     <!-- Card Grid -->
     <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
