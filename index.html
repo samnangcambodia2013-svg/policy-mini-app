@@ -376,3 +376,243 @@
       if (!filtered.length) {
         grid.innerHTML = `<div class="col-span-full py-10 text-center text-sm text-slate-400">No policies match the selected filters.</div>`;
         return;
+      }
+
+      filtered.forEach(p => {
+        const hasRemark = Boolean(p.remark && p.remark.trim() !== "");
+        const card = document.createElement("div");
+
+        card.className = `p-4 rounded-xl border cursor-pointer transition transform hover:-translate-y-0.5 hover:shadow-md bg-white ${
+          hasRemark ? "border-emerald-500 ring-1 ring-emerald-500/20 bg-emerald-50/15" : "border-slate-200 hover:border-slate-300"
+        }`;
+
+        const isDelivered = p.remark === "Delivered to Customer";
+
+        card.innerHTML = `
+          <div class="flex justify-between items-start mb-2">
+            <div>
+              <span class="text-xs font-semibold text-slate-400">#${p.policyNumber}</span>
+              <h4 class="font-bold text-slate-900 text-sm">${p.poName || "Unknown Owner"}</h4>
+            </div>
+            ${
+              hasRemark 
+                ? `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">Already Remarked</span>`
+                : `<span class="bg-slate-100 text-slate-600 text-[10px] font-medium px-2 py-0.5 rounded-full">Needs Review</span>`
+            }
+          </div>
+          <div class="text-xs text-slate-500 space-y-1 mb-3">
+            <div><span class="text-slate-400">Product:</span> ${p.product || "-"} (${p.productType || "-"})</div>
+            <div><span class="text-slate-400">Kit Type:</span> ${p.kitType || "-"}</div>
+            <div><span class="text-slate-400">Servicing:</span> ${p.servicingAgent || "-"}</div>
+          </div>
+          ${
+            hasRemark 
+              ? `<div class="bg-emerald-50 border border-emerald-100 p-2 rounded text-[11px] text-emerald-800 leading-snug">
+                  <span class="font-bold">${p.remark}</span>${(!isDelivered && p.reason) ? `: ${p.reason}` : ""}
+                  ${p.dateRemark ? `<div class="text-[10px] text-emerald-600 mt-0.5 font-medium">${isDelivered ? "Delivered Date" : "Date Remark"}: ${p.dateRemark}</div>` : ""}
+                 </div>`
+              : `<div class="text-[11px] text-slate-400 italic">Click card to record remark</div>`
+          }
+        `;
+
+        card.onclick = () => openEditModal(p);
+        grid.appendChild(card);
+      });
+    }
+
+    function handleRemarkChange(remarkVal) {
+      const reasonContainer = document.getElementById("reasonContainer");
+      const dateLabel = document.getElementById("dateLabel");
+
+      if (remarkVal === "Delivered to Customer") {
+        reasonContainer.classList.add("hidden");
+        dateLabel.innerHTML = `Delivered Date <span class="text-red-500">*</span>`;
+      } else {
+        reasonContainer.classList.remove("hidden");
+        dateLabel.innerHTML = `Date Remark <span class="text-red-500">*</span>`;
+      }
+    }
+
+    function openEditModal(p) {
+      currentSelectedPolicy = p;
+
+      document.getElementById("modalPolicyNo").textContent = p.policyNumber;
+      document.getElementById("detailPolicyNo").textContent = p.policyNumber || "-";
+      document.getElementById("detailPoName").textContent = p.poName || "-";
+      document.getElementById("detailKitType").textContent = p.kitType || "-";
+      document.getElementById("detailTransfer").textContent = p.transferCase || "-";
+      document.getElementById("detailProduct").textContent = p.product || "-";
+      document.getElementById("detailProductType").textContent = p.productType || "-";
+      document.getElementById("detailAgentName").textContent = p.agentName || "-";
+      document.getElementById("detailServicingAgent").textContent = p.servicingAgent || "-";
+      document.getElementById("detailTelegram").textContent = p.telegramLinkage || "-";
+
+      const hasExistingData = Boolean(p.remark || p.reason);
+      const warningBanner = document.getElementById("overwriteWarning");
+      if (hasExistingData) {
+        warningBanner.classList.remove("hidden");
+      } else {
+        warningBanner.classList.add("hidden");
+      }
+
+      const remarkSelect = document.getElementById("modalRemark");
+      remarkSelect.value = p.remark || "";
+      handleRemarkChange(remarkSelect.value);
+
+      const reasonSelect = document.getElementById("modalReason");
+      const customInput = document.getElementById("customReasonInput");
+      const standardReasons = [
+        "Customer Requested Later Delivery",
+        "Customer Not Available",
+        "Customer Changed Location",
+        "Customer Out of Country/Province",
+        "Waiting for Appointment Confirmation",
+        "Unable to Contact Customer"
+      ];
+
+      if (p.reason && !standardReasons.includes(p.reason)) {
+        reasonSelect.value = "__CUSTOM__";
+        customInput.value = p.reason;
+        customInput.classList.remove("hidden");
+      } else {
+        reasonSelect.value = p.reason || "";
+        customInput.value = "";
+        customInput.classList.add("hidden");
+      }
+
+      document.getElementById("modalDateRemark").value = p.dateRemark || new Date().toISOString().split("T")[0];
+
+      document.getElementById("editModal").classList.remove("hidden");
+    }
+
+    function toggleCustomReason(val) {
+      const customInput = document.getElementById("customReasonInput");
+      if (val === "__CUSTOM__") {
+        customInput.classList.remove("hidden");
+        customInput.focus();
+      } else {
+        customInput.classList.add("hidden");
+        customInput.value = "";
+      }
+    }
+
+    function closeModal() {
+      document.getElementById("editModal").classList.add("hidden");
+      currentSelectedPolicy = null;
+    }
+
+    async function submitUpdate() {
+      if (!currentSelectedPolicy) return;
+
+      const remark = document.getElementById("modalRemark").value;
+      const dateRemark = document.getElementById("modalDateRemark").value;
+      let reason = "";
+
+      if (!remark) {
+        alert("Please select a Remark.");
+        return;
+      }
+
+      if (remark === "Delivered to Customer") {
+        reason = "";
+      } else {
+        reason = document.getElementById("modalReason").value;
+        if (reason === "__CUSTOM__") {
+          reason = document.getElementById("customReasonInput").value.trim();
+        }
+        if (!reason) {
+          alert("Please select or enter a Reason.");
+          return;
+        }
+      }
+
+      if (!dateRemark) {
+        alert("Please select a date.");
+        return;
+      }
+
+      // Confirmation check for ePolicy Kit marked as Delivered to Customer
+      const isEPolicyKit = (currentSelectedPolicy.kitType || "").trim().toLowerCase() === "epolicy kit";
+      if (isEPolicyKit && remark === "Delivered to Customer") {
+        const confirmTelegram = confirm(
+          "តើអ្នកប្រាកដទេថា អតិថិជននេះបានលីងតេលេក្រាមរួចរាល់ហើយ?\n" +
+          "Are you sure this policy is already link to telegram?\n\n" +
+          "បញ្ចាក់៖ ករណី ePolicyKit ដែលបានលីងតេលេក្រាម ទើបសំគាល់ថា Delivery to Customer"
+        );
+        if (!confirmTelegram) return;
+      }
+
+      if (currentSelectedPolicy.remark || currentSelectedPolicy.reason) {
+        const proceed = confirm("This policy already contains existing remarks. Do you wish to overwrite it?");
+        if (!proceed) return;
+      }
+
+      const saveBtn = document.getElementById("saveBtn");
+      saveBtn.disabled = true;
+      saveBtn.textContent = "Saving...";
+
+      const payload = {
+        policyNumber: currentSelectedPolicy.policyNumber,
+        remark: remark,
+        reason: reason,
+        dateRemark: dateRemark
+      };
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: "POST",
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+
+        if (json.status === "success") {
+          currentSelectedPolicy.remark = remark;
+          currentSelectedPolicy.reason = reason;
+          currentSelectedPolicy.dateRemark = dateRemark;
+          
+          updateCountsAndRender();
+          closeModal();
+          showStatus("Updated successfully!", "success");
+        } else {
+          alert(`Error: ${json.message}`);
+        }
+      } catch (err) {
+        alert("Failed to update data. Please check your connection.");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Save Update";
+      }
+    }
+
+    async function directSearch() {
+      const policyNo = document.getElementById("directSearchInput").value.trim();
+      if (!policyNo) return;
+
+      showStatus("Locating policy...", "info");
+      try {
+        const res = await fetch(`${SCRIPT_URL}?action=searchPolicy&policyNumber=${encodeURIComponent(policyNo)}`);
+        const json = await res.json();
+        if (json.status === "success" && json.found) {
+          showStatus("Policy found", "success");
+          openEditModal(json.data);
+        } else {
+          showStatus("Policy not found", "error");
+        }
+      } catch (err) {
+        showStatus("Search request failed", "error");
+      }
+    }
+
+    function showStatus(text, type) {
+      const badge = document.getElementById("statusBadge");
+      badge.textContent = text;
+      badge.className = "text-xs font-semibold px-3 py-1.5 rounded-full block ";
+      if (type === "success") badge.className += "bg-emerald-100 text-emerald-800";
+      else if (type === "error") badge.className += "bg-red-100 text-red-800";
+      else badge.className += "bg-blue-100 text-blue-800";
+
+      setTimeout(() => badge.classList.add("hidden"), 3000);
+    }
+  </script>
+</body>
+</html>
