@@ -408,7 +408,7 @@
       const total = activePolicies.length;
       const remarked = activePolicies.filter(p => p.remark && p.remark.trim() !== "").length;
       const pending = total - remarked;
-      const delivered = activePolicies.filter(p => (p.remark || "").trim() === "Delivered to Customer").length;
+      const delivered = activePolicies.filter(p => (p.remark || "").trim() === "Delivered To Customer").length;
       const pendingDelivery = activePolicies.filter(p => (p.remark || "").trim() === "Pending Delivery").length;
 
       const remarkedPct = total ? Math.round((remarked / total) * 100) : 0;
